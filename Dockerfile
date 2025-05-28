@@ -5,9 +5,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Python 3.9 and essential utilities
 RUN apt-get update && apt-get install -y \
-    python3.9 \
-    python3.9-venv \
-    python3.9-dev \
     wget \
     curl \
     git \
