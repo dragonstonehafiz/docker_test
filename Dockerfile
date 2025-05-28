@@ -34,6 +34,10 @@ RUN git clone https://github.com/colmap/colmap.git && \
     ninja && \
     ninja install
 
+WORKDIR /workspace
+# Add my test scripts
+RUN git clone https://github.com/dragonstonehafiz/docker_test.git
+
 
 WORKDIR /workspace
 # Download and install Miniconda non-interactively
