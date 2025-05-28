@@ -1,26 +1,64 @@
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
-# Avoid prompts during install
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Python 3.9 and essential utilities
 RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
     git \
-    ca-certificates \
-    && ln -sf python3.9 /usr/bin/python3 \
-    && ln -sf python3.9 /usr/bin/python \
+    cmake \
+    ninja-build \
+    build-essential \
+    libboost-program-options-dev \
+    libboost-graph-dev \
+    libboost-system-dev \
+    libeigen3-dev \
+    libflann-dev \
+    libfreeimage-dev \
+    libmetis-dev \
+    libgoogle-glog-dev \
+    libgtest-dev \
+    libgmock-dev \
+    libsqlite3-dev \
+    libglew-dev \
+    qtbase5-dev \
+    libqt5opengl5-dev \
+    libcgal-dev \
+    libceres-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Miniconda
-ENV CONDA_DIR=/opt/conda
-ENV PATH=$CONDA_DIR/bin:$PATH
+WORKDIR /workspace
+RUN git clone https://github.com/colmap/colmap.git && \
+    cd colmap && \
+    mkdir build && \
+    cd build && \
+    cmake .. -GNinja -DCMAKE_CUDA_ARCHITECTURES=86 && \
+    ninja && \
+    ninja install
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
-    bash /tmp/miniconda.sh -b -p $CONDA_DIR && \
-    rm /tmp/miniconda.sh && \
-    conda init bash
+
+WORKDIR /workspace
+# Download and install Miniconda non-interactively
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && \
+    rm Miniconda3-latest-Linux-x86_64.sh
+# Add conda to PATH
+ENV PATH=/opt/conda/bin:$PATH
+
+# Clone the repo
+WORKDIR /workspace
+RUN git clone https://github.com/graphdeco-inria/gaussian-splatting --recursive
+
+# Create conda environment and install dependencies
+# RUN conda create -n gaussian_splatting python=3.9 -y && \
+#     /opt/conda/bin/conda run -n gaussian_splatting pip install --upgrade pip && \
+#     /opt/conda/bin/conda run -n gaussian_splatting pip install \
+#     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 && \
+#     /opt/conda/bin/conda run -n gaussian_splatting pip install \
+#     tqdm \
+#     plyfile \
+#     opencv-python \
+#     opencv-contrib-python && \
+#     /opt/conda/bin/conda run -n gaussian_splatting pip install \
+#     ./gaussian-splatting/submodules/diff-gaussian-rasterization \
+#     ./gaussian-splatting/submodules/simple-knn \
+#     ./gaussian-splatting/submodules/fused-ssim
 
 # Set default shell to bash
 SHELL ["/bin/bash", "-c"]
